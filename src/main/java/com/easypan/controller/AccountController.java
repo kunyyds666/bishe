@@ -288,4 +288,11 @@ public class AccountController extends ABaseController {
         result.put("userInfo", sessionWebUserDto);
         return getSuccessResponseVO(result);
     }
+
+
+    @RequestMapping("hello")
+    public String test(String test){
+        return "hello";
+
+    }
 }
