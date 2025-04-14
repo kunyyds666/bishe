@@ -40,6 +40,6 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           pkill -f 'java.*\.jar' || true
-          nohup java -jar /opt/bishe/*.jar > /opt/myapp/app.log 2>&1 &
+          nohup java -jar /opt/bishe/*.jar > /opt/bishe/app.log 2>&1 &
 
       
