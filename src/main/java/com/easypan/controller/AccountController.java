@@ -301,8 +301,4 @@ public class AccountController extends ABaseController {
 
     }
 
-    public static void main(String[] args) {
-        List<String> list = Arrays.asList("a","b");
-        list.remove("a");
-    }
 }
