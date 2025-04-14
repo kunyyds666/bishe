@@ -31,7 +31,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         source: "target/*.jar"
         target: "/opt/bishe"
-        
+
     - name: 重启服务
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -40,6 +40,6 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           pkill -f 'java.*\.jar' || true
-          nohup java -jar /opt/bishe/target/*.jar > /opt/bishe/app.log 2>&1 &
+          nohup java -jar /opt/bishe/*.jar > /opt/bishe/app.log 2>&1 &
 
       
