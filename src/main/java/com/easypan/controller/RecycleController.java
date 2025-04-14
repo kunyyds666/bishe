@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+//回收站
 @RestController("recycleController")
 @RequestMapping("/recycle")
 public class RecycleController extends ABaseController {
@@ -23,7 +24,7 @@ public class RecycleController extends ABaseController {
     private FileInfoService fileInfoService;
 
     /**
-     * 根据条件分页查询
+     * 加载回收站文件列表
      */
     @RequestMapping("/loadRecycleList")
     @GlobalInterceptor(checkParams = true)
@@ -38,6 +39,9 @@ public class RecycleController extends ABaseController {
         return getSuccessResponseVO(convert2PaginationVO(result, FileInfoVO.class));
     }
 
+    /**
+     * 还原文件
+     */
     @RequestMapping("/recoverFile")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO recoverFile(HttpSession session, @VerifyParam(required = true) String fileIds) {
@@ -46,6 +50,9 @@ public class RecycleController extends ABaseController {
         return getSuccessResponseVO(null);
     }
 
+    /**
+     * 彻底删除文件
+     */
     @RequestMapping("/delFile")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO delFile(HttpSession session, @VerifyParam(required = true) String fileIds) {

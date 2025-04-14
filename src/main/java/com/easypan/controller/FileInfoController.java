@@ -48,6 +48,9 @@ public class FileInfoController extends CommonFileController {
         return getSuccessResponseVO(convert2PaginationVO(result, FileInfoVO.class));
     }
 
+    /**
+     * 上传文件
+     */
     @RequestMapping("/uploadFile")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO uploadFile(HttpSession session,
@@ -65,23 +68,35 @@ public class FileInfoController extends CommonFileController {
     }
 
 
+    /**
+     * 获取图片
+     */
     @RequestMapping("/getImage/{imageFolder}/{imageName}")
     public void getImage(HttpServletResponse response, @PathVariable("imageFolder") String imageFolder, @PathVariable("imageName") String imageName) {
         super.getImage(response, imageFolder, imageName);
     }
 
+    /**
+     * 获取视频信息
+     */
     @RequestMapping("/ts/getVideoInfo/{fileId}")
     public void getVideoInfo(HttpServletResponse response, HttpSession session, @PathVariable("fileId") @VerifyParam(required = true) String fileId) {
         SessionWebUserDto webUserDto = getUserInfoFromSession(session);
         super.getFile(response, fileId, webUserDto.getUserId());
     }
 
+    /**
+     * 获取文件
+     */
     @RequestMapping("/getFile/{fileId}")
     public void getFile(HttpServletResponse response, HttpSession session, @PathVariable("fileId") @VerifyParam(required = true) String fileId) {
         SessionWebUserDto webUserDto = getUserInfoFromSession(session);
         super.getFile(response, fileId, webUserDto.getUserId());
     }
 
+    /**
+     * 新建文件夹
+     */
     @RequestMapping("/newFolder")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO newFolder(HttpSession session,
@@ -92,6 +107,9 @@ public class FileInfoController extends CommonFileController {
         return getSuccessResponseVO(fileInfo);
     }
 
+    /**
+     * 获取文件夹信息
+     */
     @RequestMapping("/getFolderInfo")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO getFolderInfo(HttpSession session, @VerifyParam(required = true) String path) {
@@ -99,6 +117,9 @@ public class FileInfoController extends CommonFileController {
     }
 
 
+    /**
+     * 重命名
+     */
     @RequestMapping("/rename")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO rename(HttpSession session,
@@ -108,6 +129,10 @@ public class FileInfoController extends CommonFileController {
         FileInfo fileInfo = fileInfoService.rename(fileId, webUserDto.getUserId(), fileName);
         return getSuccessResponseVO(CopyTools.copy(fileInfo, FileInfoVO.class));
     }
+
+    /**
+     * 加载所有文件夹
+     */
 
     @RequestMapping("/loadAllFolder")
     @GlobalInterceptor(checkParams = true)
@@ -125,6 +150,9 @@ public class FileInfoController extends CommonFileController {
         return getSuccessResponseVO(CopyTools.copyList(fileInfoList, FileInfoVO.class));
     }
 
+    /**
+     * 移动文件
+     */
     @RequestMapping("/changeFileFolder")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO changeFileFolder(HttpSession session,
@@ -135,19 +163,27 @@ public class FileInfoController extends CommonFileController {
         return getSuccessResponseVO(null);
     }
 
+    /**
+     * 创建下载地址
+     */
     @RequestMapping("/createDownloadUrl/{fileId}")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO createDownloadUrl(HttpSession session, @PathVariable("fileId") @VerifyParam(required = true) String fileId) {
         return super.createDownloadUrl(fileId, getUserInfoFromSession(session).getUserId());
     }
 
+    /**
+     * 下载文件
+     */
     @RequestMapping("/download/{code}")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
     public void download(HttpServletRequest request, HttpServletResponse response, @PathVariable("code") @VerifyParam(required = true) String code) throws Exception {
         super.download(request, response, code);
     }
 
-
+    /**
+     * 删除文件
+     */
     @RequestMapping("/delFile")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO delFile(HttpSession session, @VerifyParam(required = true) String fileIds) {

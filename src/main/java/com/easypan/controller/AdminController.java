@@ -137,6 +137,10 @@ public class AdminController extends CommonFileController {
     }
 
 
+    /**
+     * 删除文件
+     *
+     */
     @RequestMapping("/delFile")
     @GlobalInterceptor(checkParams = true, checkAdmin = true)
     public ResponseVO delFile(@VerifyParam(required = true) String fileIdAndUserIds) {

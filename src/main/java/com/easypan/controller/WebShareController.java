@@ -181,6 +181,9 @@ public class WebShareController extends CommonFileController {
         return super.getFolderInfo(path, shareSessionDto.getShareUserId());
     }
 
+    /**
+     * 获取文件
+     */
     @RequestMapping("/getFile/{shareId}/{fileId}")
     public void getFile(HttpServletResponse response, HttpSession session,
                         @PathVariable("shareId") @VerifyParam(required = true) String shareId,
@@ -189,6 +192,9 @@ public class WebShareController extends CommonFileController {
         super.getFile(response, fileId, shareSessionDto.getShareUserId());
     }
 
+    /**
+     * 获取视频信息
+     */
     @RequestMapping("/ts/getVideoInfo/{shareId}/{fileId}")
     public void getVideoInfo(HttpServletResponse response,
                              HttpSession session,
@@ -198,6 +204,13 @@ public class WebShareController extends CommonFileController {
         super.getFile(response, fileId, shareSessionDto.getShareUserId());
     }
 
+    /***
+    * @Description: 创建下载地址
+    * @Param: [session, shareId, fileId]
+    * @return: com.easypan.entity.vo.ResponseVO
+    * @Author: kun
+    * @Date: 2025/4/14
+    */
     @RequestMapping("/createDownloadUrl/{shareId}/{fileId}")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
     public ResponseVO createDownloadUrl(HttpSession session,

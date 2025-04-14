@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+//分享
 @RestController("shareController")
 @RequestMapping("/share")
 public class ShareController extends ABaseController {
@@ -21,6 +22,9 @@ public class ShareController extends ABaseController {
     private FileShareService fileShareService;
 
 
+    /**
+     *加载分享列表
+     */
     @RequestMapping("/loadShareList")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO loadShareList(HttpSession session, FileShareQuery query) {
@@ -32,6 +36,9 @@ public class ShareController extends ABaseController {
         return getSuccessResponseVO(resultVO);
     }
 
+    /**
+     *分享文件
+     */
     @RequestMapping("/shareFile")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO shareFile(HttpSession session,
@@ -48,6 +55,9 @@ public class ShareController extends ABaseController {
         return getSuccessResponseVO(share);
     }
 
+    /**
+     *取消分享
+     */
     @RequestMapping("/cancelShare")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO cancelShare(HttpSession session, @VerifyParam(required = true) String shareIds) {

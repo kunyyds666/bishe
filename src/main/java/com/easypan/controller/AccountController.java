@@ -14,6 +14,7 @@ import com.easypan.exception.BusinessException;
 import com.easypan.service.EmailCodeService;
 import com.easypan.service.UserInfoService;
 import com.easypan.utils.StringTools;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController("accountController")
@@ -292,7 +295,14 @@ public class AccountController extends ABaseController {
 
     @RequestMapping("hello")
     public String test(String test){
-        return "hello";
 
+
+        return DigestUtils.md5Hex(test);
+
+    }
+
+    public static void main(String[] args) {
+        List<String> list = Arrays.asList("a","b");
+        list.remove("a");
     }
 }
