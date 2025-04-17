@@ -14,6 +14,9 @@ import com.easypan.exception.BusinessException;
 import com.easypan.service.EmailCodeService;
 import com.easypan.service.UserInfoService;
 import com.easypan.utils.StringTools;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,18 +26,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController("accountController")
@@ -59,11 +57,6 @@ public class AccountController extends ABaseController {
 
     /**
      * 验证码
-     *
-     * @param response
-     * @param session
-     * @param type
-     * @throws IOException
      */
     @RequestMapping(value = "/checkCode")
     public void checkCode(HttpServletResponse response, HttpSession session, Integer type) throws
@@ -84,10 +77,6 @@ public class AccountController extends ABaseController {
 
     /**
      * @Description: 发送邮箱验证码
-     * @auther: laoluo
-     * @date: 20:39 2023/4/1
-     * @param: [session, email, checkCode, type]
-     * @return: com.easypan.entity.vo.ResponseVO
      */
     @RequestMapping("/sendEmailCode")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
@@ -108,10 +97,6 @@ public class AccountController extends ABaseController {
 
     /**
      * @Description: 注册
-     * @auther: laoluo
-     * @date: 20:39 2023/4/1
-     * @param: [session, email, nickName, password, checkCode, emailCode]
-     * @return: com.easypan.entity.vo.ResponseVO
      */
     @RequestMapping("/register")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
@@ -134,10 +119,6 @@ public class AccountController extends ABaseController {
 
     /**
      * @Description: 登录
-     * @auther: laoluo
-     * @date: 20:39 2023/4/1
-     * @param: [session, request, email, password, checkCode]
-     * @return: com.easypan.entity.vo.ResponseVO
      */
     @RequestMapping("/login")
     @GlobalInterceptor(checkLogin = false, checkParams = true)

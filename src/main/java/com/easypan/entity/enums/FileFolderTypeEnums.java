@@ -1,6 +1,9 @@
 package com.easypan.entity.enums;
 
 
+import lombok.Getter;
+
+@Getter
 public enum FileFolderTypeEnums {
     FILE(0, "文件"),
     FOLDER(1, "目录");
@@ -13,11 +16,4 @@ public enum FileFolderTypeEnums {
         this.desc = desc;
     }
 
-    public Integer getType() {
-        return type;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
 }

@@ -10,9 +10,9 @@ import com.easypan.entity.query.FileInfoQuery;
 import com.easypan.entity.query.UserInfoQuery;
 import com.easypan.mappers.FileInfoMapper;
 import com.easypan.mappers.UserInfoMapper;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 
 @Component("redisComponent")
 public class RedisComponent {

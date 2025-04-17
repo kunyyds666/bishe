@@ -16,17 +16,21 @@ import com.easypan.mappers.EmailCodeMapper;
 import com.easypan.mappers.UserInfoMapper;
 import com.easypan.service.EmailCodeService;
 import com.easypan.utils.StringTools;
+import freemarker.cache.FileTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
-import javax.annotation.Resource;
-import javax.mail.internet.MimeMessage;
-import java.util.Date;
-import java.util.List;
+import java.io.File;
+import java.util.*;
 
 
 /**
@@ -35,13 +39,14 @@ import java.util.List;
 @Service("emailCodeService")
 public class EmailCodeServiceImpl implements EmailCodeService {
 
+    @Autowired
+    private JavaMailSender mailSender;
+
     private static final Logger logger = LoggerFactory.getLogger(EmailCodeServiceImpl.class);
 
     @Resource
     private EmailCodeMapper<EmailCode, EmailCodeQuery> emailCodeMapper;
 
-    @Resource
-    private JavaMailSender javaMailSender;
 
     @Resource
     private AppConfig appConfig;
@@ -139,23 +144,41 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 
     private void sendEmailCode(String toEmail, String code) {
         try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            //邮件发件人
-            helper.setFrom(appConfig.getSendUserName());
-            //邮件收件人 1或多个
-            helper.setTo(toEmail);
-
+            // 从 Redis 中获取系统设置
             SysSettingsDto sysSettingsDto = redisComponent.getSysSettingsDto();
 
-            //邮件主题
-            helper.setSubject(sysSettingsDto.getRegisterEmailTitle());
-            //邮件内容
-            helper.setText(String.format(sysSettingsDto.getRegisterEmailContent(), code));
-            //邮件发送时间
-            helper.setSentDate(new Date());
-            javaMailSender.send(message);
+// 加载      FreeMarker 模板
+            Configuration configuration = new Configuration(Configuration.VERSION_2_3_23);
+            FileTemplateLoader templateLoader = new FileTemplateLoader(
+                    new File(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("templates/")).getPath())
+            );
+            configuration.setTemplateLoader(templateLoader);
+            Template template = configuration.getTemplate("email_template.html", "UTF-8");
+
+            // 构建模板数据模型
+            Map<String, Object> model = new HashMap<>();
+            model.put("code", code);
+            model.put("title", sysSettingsDto.getRegisterEmailTitle());
+            model.put("content", sysSettingsDto.getRegisterEmailContent());
+
+            // 生成HTML 内容
+            String htmlContent = FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+
+            // 创建邮件消息
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mailSender.createMimeMessage(), true);
+            // 发件人
+            messageHelper.setFrom(appConfig.getSendUserName());
+            // 收件人
+            messageHelper.setTo(toEmail);
+            // 主题
+            messageHelper.setSubject(sysSettingsDto.getRegisterEmailTitle());
+            // 设置发送时间
+            messageHelper.setSentDate(new Date());
+            // 内容（HTML 格式）
+            messageHelper.setText(htmlContent, true);
+
+            // 发送邮件
+            mailSender.send(messageHelper.getMimeMessage());
         } catch (Exception e) {
             logger.error("邮件发送失败", e);
             throw new BusinessException("邮件发送失败");

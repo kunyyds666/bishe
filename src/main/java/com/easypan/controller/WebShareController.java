@@ -21,14 +21,15 @@ import com.easypan.service.FileShareService;
 import com.easypan.service.UserInfoService;
 import com.easypan.utils.CopyTools;
 import com.easypan.utils.StringTools;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.annotation.Resource;
+
 import java.util.Date;
 
 @RestController("webShareController")
@@ -47,10 +48,6 @@ public class WebShareController extends CommonFileController {
 
     /**
      * 获取分享登录信息
-     *
-     * @param session
-     * @param shareId
-     * @return
      */
     @RequestMapping("/getShareLoginInfo")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
@@ -72,9 +69,6 @@ public class WebShareController extends CommonFileController {
 
     /**
      * 获取分享信息
-     *
-     * @param shareId
-     * @return
      */
     @RequestMapping("/getShareInfo")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
@@ -102,11 +96,6 @@ public class WebShareController extends CommonFileController {
 
     /**
      * 校验分享码
-     *
-     * @param session
-     * @param shareId
-     * @param code
-     * @return
      */
     @RequestMapping("/checkShareCode")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
@@ -120,9 +109,6 @@ public class WebShareController extends CommonFileController {
 
     /**
      * 获取文件列表
-     *
-     * @param session
-     * @param shareId
      * @return
      */
     @RequestMapping("/loadFileList")
@@ -147,10 +133,6 @@ public class WebShareController extends CommonFileController {
 
     /**
      * 校验分享是否失效
-     *
-     * @param session
-     * @param shareId
-     * @return
      */
     private SessionShareDto checkShare(HttpSession session, String shareId) {
         SessionShareDto shareSessionDto = getSessionShareFromSession(session, shareId);
@@ -166,11 +148,6 @@ public class WebShareController extends CommonFileController {
 
     /**
      * 获取目录信息
-     *
-     * @param session
-     * @param shareId
-     * @param path
-     * @return
      */
     @RequestMapping("/getFolderInfo")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
@@ -222,10 +199,6 @@ public class WebShareController extends CommonFileController {
 
     /**
      * 下载
-     *
-     * @param request
-     * @param response
-     * @throws Exception
      */
     @RequestMapping("/download/{code}")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
@@ -236,12 +209,6 @@ public class WebShareController extends CommonFileController {
 
     /**
      * 保存分享
-     *
-     * @param session
-     * @param shareId
-     * @param shareFileIds
-     * @param myFolderId
-     * @return
      */
     @RequestMapping("/saveShare")
     @GlobalInterceptor(checkParams = true)

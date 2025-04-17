@@ -21,6 +21,7 @@ import com.easypan.utils.DateUtil;
 import com.easypan.utils.ProcessUtils;
 import com.easypan.utils.ScaleFilter;
 import com.easypan.utils.StringTools;
+import jakarta.annotation.Resource;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;

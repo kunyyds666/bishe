@@ -2,13 +2,14 @@ package com.easypan;
 
 import com.easypan.component.RedisComponent;
 import com.easypan.exception.BusinessException;
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+
 import javax.sql.DataSource;
 
 @Component("initRun")
