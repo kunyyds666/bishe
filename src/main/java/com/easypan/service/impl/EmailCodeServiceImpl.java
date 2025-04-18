@@ -22,7 +22,6 @@ import freemarker.template.Template;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -39,7 +38,7 @@ import java.util.*;
 @Service("emailCodeService")
 public class EmailCodeServiceImpl implements EmailCodeService {
 
-    @Autowired
+    @Resource
     private JavaMailSender mailSender;
 
     private static final Logger logger = LoggerFactory.getLogger(EmailCodeServiceImpl.class);
@@ -84,8 +83,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
         SimplePage page = new SimplePage(param.getPageNo(), count, pageSize);
         param.setSimplePage(page);
         List<EmailCode> list = this.findListByParam(param);
-        PaginationResultVO<EmailCode> result = new PaginationResultVO(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
-        return result;
+        return new PaginationResultVO<>(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
     }
 
     /**
@@ -144,10 +142,9 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 
     private void sendEmailCode(String toEmail, String code) {
         try {
-            // 从 Redis 中获取系统设置
-            SysSettingsDto sysSettingsDto = redisComponent.getSysSettingsDto();
 
-// 加载      FreeMarker 模板
+
+            // 加载FreeMarker 模板
             Configuration configuration = new Configuration(Configuration.VERSION_2_3_23);
             FileTemplateLoader templateLoader = new FileTemplateLoader(
                     new File(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("templates/")).getPath())
@@ -158,8 +155,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
             // 构建模板数据模型
             Map<String, Object> model = new HashMap<>();
             model.put("code", code);
-            model.put("title", sysSettingsDto.getRegisterEmailTitle());
-            model.put("content", sysSettingsDto.getRegisterEmailContent());
+
 
             // 生成HTML 内容
             String htmlContent = FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
@@ -170,12 +166,12 @@ public class EmailCodeServiceImpl implements EmailCodeService {
             messageHelper.setFrom(appConfig.getSendUserName());
             // 收件人
             messageHelper.setTo(toEmail);
-            // 主题
-            messageHelper.setSubject(sysSettingsDto.getRegisterEmailTitle());
             // 设置发送时间
             messageHelper.setSentDate(new Date());
             // 内容（HTML 格式）
             messageHelper.setText(htmlContent, true);
+            //设置主题
+            messageHelper.setSubject("【EasyPan】邮箱验证码");
 
             // 发送邮件
             mailSender.send(messageHelper.getMimeMessage());
@@ -189,7 +185,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
     @Transactional(rollbackFor = Exception.class)
     public void sendEmailCode(String toEmail, Integer type) {
         //如果是注册，校验邮箱是否已存在
-        if (type == Constants.ZERO) {
+        if (Objects.equals(type, Constants.ZERO)) {
             UserInfo userInfo = userInfoMapper.selectByEmail(toEmail);
             if (null != userInfo) {
                 throw new BusinessException("邮箱已经存在");

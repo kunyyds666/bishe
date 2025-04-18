@@ -21,6 +21,7 @@ import com.easypan.service.UserInfoService;
 import com.easypan.utils.JsonUtils;
 import com.easypan.utils.OKHttpUtils;
 import com.easypan.utils.StringTools;
+import jakarta.annotation.Resource;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,9 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.Resource;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -86,8 +86,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         SimplePage page = new SimplePage(param.getPageNo(), count, pageSize);
         param.setSimplePage(page);
         List<UserInfo> list = this.findListByParam(param);
-        PaginationResultVO<UserInfo> result = new PaginationResultVO(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
-        return result;
+        return new PaginationResultVO<>(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
     }
 
     /**
@@ -232,11 +231,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         SessionWebUserDto sessionWebUserDto = new SessionWebUserDto();
         sessionWebUserDto.setNickName(userInfo.getNickName());
         sessionWebUserDto.setUserId(userInfo.getUserId());
-        if (ArrayUtils.contains(appConfig.getAdminEmails().split(","), email)) {
-            sessionWebUserDto.setAdmin(true);
-        } else {
-            sessionWebUserDto.setAdmin(false);
-        }
+        sessionWebUserDto.setAdmin(ArrayUtils.contains(appConfig.getAdminEmails().split(","), email));
         //用户空间
         UserSpaceDto userSpaceDto = new UserSpaceDto();
         userSpaceDto.setUseSpace(fileInfoService.getUserUseSpace(userInfo.getUserId()));
@@ -340,11 +335,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         sessionWebUserDto.setUserId(user.getUserId());
         sessionWebUserDto.setNickName(user.getNickName());
         sessionWebUserDto.setAvatar(avatar);
-        if (ArrayUtils.contains(appConfig.getAdminEmails().split(","), user.getEmail() == null ? "" : user.getEmail())) {
-            sessionWebUserDto.setAdmin(true);
-        } else {
-            sessionWebUserDto.setAdmin(false);
-        }
+        sessionWebUserDto.setAdmin(ArrayUtils.contains(appConfig.getAdminEmails().split(","), user.getEmail() == null ? "" : user.getEmail()));
 
         UserSpaceDto userSpaceDto = new UserSpaceDto();
         userSpaceDto.setUseSpace(fileInfoService.getUserUseSpace(user.getUserId()));
@@ -354,29 +345,23 @@ public class UserInfoServiceImpl implements UserInfoService {
     }
 
     private String getQQAccessToken(String code) {
-        /**
-         * 返回结果是字符串 access_token=*&expires_in=7776000&refresh_token=* 返回错误 callback({UcWebConstants.VIEW_OBJ_RESULT_KEY:111,error_description:"error msg"})
+        /*
+          返回结果是字符串 access_token=*&expires_in=7776000&refresh_token=* 返回错误 callback({UcWebConstants.VIEW_OBJ_RESULT_KEY:111,error_description:"error msg"})
          */
         String accessToken = null;
         String url = null;
-        try {
-            url = String.format(appConfig.getQqUrlAccessToken(), appConfig.getQqAppId(), appConfig.getQqAppKey(), code, URLEncoder.encode(appConfig
-                    .getQqUrlRedirect(), "utf-8"));
-        } catch (UnsupportedEncodingException e) {
-            logger.error("encode失败");
-        }
+        url = String.format(appConfig.getQqUrlAccessToken(), appConfig.getQqAppId(), appConfig.getQqAppKey(), code, URLEncoder.encode(appConfig
+                .getQqUrlRedirect(), StandardCharsets.UTF_8));
         String tokenResult = OKHttpUtils.getRequest(url);
-        if (tokenResult == null || tokenResult.indexOf(Constants.VIEW_OBJ_RESULT_KEY) != -1) {
+        if (tokenResult == null || tokenResult.contains(Constants.VIEW_OBJ_RESULT_KEY)) {
             logger.error("获取qqToken失败:{}", tokenResult);
             throw new BusinessException("获取qqToken失败");
         }
         String[] params = tokenResult.split("&");
-        if (params != null && params.length > 0) {
-            for (String p : params) {
-                if (p.indexOf("access_token") != -1) {
-                    accessToken = p.split("=")[1];
-                    break;
-                }
+        for (String p : params) {
+            if (p.contains("access_token")) {
+                accessToken = p.split("=")[1];
+                break;
             }
         }
         return accessToken;
@@ -421,8 +406,7 @@ public class UserInfoServiceImpl implements UserInfoService {
             if (pos != -1) {
                 int start = result.indexOf("(");
                 int end = result.lastIndexOf(")");
-                String jsonStr = result.substring(start + 1, end - 1);
-                return jsonStr;
+                return result.substring(start + 1, end - 1);
             }
         }
         return null;

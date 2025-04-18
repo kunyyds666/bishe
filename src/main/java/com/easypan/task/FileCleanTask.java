@@ -19,7 +19,7 @@ public class FileCleanTask {
     @Resource
     private FileInfoService fileInfoService;
 
-    @Scheduled(fixedDelay = 1000 * 60 * 3)
+    @Scheduled(fixedDelay = 1000 * 60 * 60)//每小时
     public void execute() {
         FileInfoQuery fileInfoQuery = new FileInfoQuery();
         fileInfoQuery.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
@@ -27,7 +27,7 @@ public class FileCleanTask {
         List<FileInfo> fileInfoList = fileInfoService.findListByParam(fileInfoQuery);
         Map<String, List<FileInfo>> fileInfoMap = fileInfoList.stream().collect(Collectors.groupingBy(FileInfo::getUserId));
         for (Map.Entry<String, List<FileInfo>> entry : fileInfoMap.entrySet()) {
-            List<String> fileIds = entry.getValue().stream().map(p -> p.getFileId()).collect(Collectors.toList());
+            List<String> fileIds = entry.getValue().stream().map(FileInfo::getFileId).collect(Collectors.toList());
             fileInfoService.delFileBatch(entry.getKey(), String.join(",", fileIds), false);
         }
     }

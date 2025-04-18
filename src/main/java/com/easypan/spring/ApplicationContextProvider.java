@@ -1,5 +1,7 @@
 package com.easypan.spring;
 
+import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -13,28 +15,20 @@ public class ApplicationContextProvider implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(ApplicationContextProvider.class);
     /**
      * 上下文对象实例
+     * -- GETTER --
+     *  获取applicationContext
      */
+    @Getter
     private static ApplicationContext applicationContext;
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
-
-    /**
-     * 获取applicationContext
-     *
-     * @return
-     */
-    public static ApplicationContext getApplicationContext() {
-        return applicationContext;
+    public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
+        ApplicationContextProvider.applicationContext = applicationContext;
     }
 
     /**
      * 通过name获取 Bean.
      *
-     * @param name
-     * @return
      */
     public static Object getBean(String name) {
         try {
@@ -48,10 +42,6 @@ public class ApplicationContextProvider implements ApplicationContextAware {
 
     /**
      * 通过class获取Bean.
-     *
-     * @param clazz
-     * @param <T>
-     * @return
      */
     public static <T> T getBean(Class<T> clazz) {
         return getApplicationContext().getBean(clazz);
@@ -59,11 +49,6 @@ public class ApplicationContextProvider implements ApplicationContextAware {
 
     /**
      * 通过name,以及Clazz返回指定的Bean
-     *
-     * @param name
-     * @param clazz
-     * @param <T>
-     * @return
      */
     public static <T> T getBean(String name, Class<T> clazz) {
         return getApplicationContext().getBean(name, clazz);
