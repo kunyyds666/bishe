@@ -61,8 +61,6 @@ dev: false
 # TODO: QQ扫码登录
 
 #OSS
-project:
-    folder: X:\code\EasyPan-main\myworkspace-java\easypan-java
 
 
 

@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+
 
 @Component("appConfig")
 public class AppConfig {
@@ -70,10 +72,16 @@ public class AppConfig {
 
 
     public String getProjectFolder() {
-        if (!StringTools.isEmpty(projectFolder) && !projectFolder.endsWith("/")) {
-            projectFolder = projectFolder + "/";
+
+        if (StringTools.isEmpty(projectFolder)) {
+            // 默认为当前工作目录（即执行jar的地方）
+            return System.getProperty("user.dir") + File.separator;
+        }
+        if (!projectFolder.endsWith(File.separator)) {
+            return projectFolder + File.separator;
         }
         return projectFolder;
+
     }
 
 }

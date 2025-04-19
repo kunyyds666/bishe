@@ -184,15 +184,10 @@ public class AccountController extends ABaseController {
     private void printNoDefaultImage(HttpServletResponse response) {
         response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
         response.setStatus(HttpStatus.OK.value());
-        PrintWriter writer = null;
-        try {
-            writer = response.getWriter();
+        try (PrintWriter writer = response.getWriter()) {
             writer.print("请在头像目录下放置默认头像default_avatar.jpg");
-            writer.close();
         } catch (Exception e) {
             logger.error("输出无默认图失败", e);
-        } finally {
-            writer.close();
         }
     }
 

@@ -33,7 +33,9 @@ public class EasyPanApplication {
     MultipartConfigElement multipartConfigElement() {
         AppConfig appConfig = (AppConfig) ApplicationContextProvider.getBean("appConfig");
         MultipartConfigFactory factory = new MultipartConfigFactory();
-        factory.setLocation(appConfig.getProjectFolder() + Constants.FILE_FOLDER_TEMP);
+        if (appConfig != null) {
+            factory.setLocation(appConfig.getProjectFolder() + Constants.FILE_FOLDER_TEMP);
+        }
         return factory.createMultipartConfig();
     }
 }
