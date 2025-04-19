@@ -13,6 +13,7 @@ import com.easypan.entity.vo.ResponseVO;
 import com.easypan.exception.BusinessException;
 import com.easypan.service.EmailCodeService;
 import com.easypan.service.UserInfoService;
+import com.easypan.utils.CaptchaUtils;
 import com.easypan.utils.StringTools;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -61,18 +62,21 @@ public class AccountController extends ABaseController {
     @RequestMapping(value = "/checkCode")
     public void checkCode(HttpServletResponse response, HttpSession session, Integer type) throws
             IOException {
-        CreateImageCode vCode = new CreateImageCode(130, 38, 5, 10);
-        response.setHeader("Pragma", "no-cache");
-        response.setHeader("Cache-Control", "no-cache");
-        response.setDateHeader("Expires", 0);
-        response.setContentType("image/jpeg");
-        String code = vCode.getCode();
+//        CreateImageCode vCode = new CreateImageCode(130, 38, 5, 10);
+//        response.setHeader("Pragma", "no-cache");
+//        response.setHeader("Cache-Control", "no-cache");
+//        response.setDateHeader("Expires", 0);
+//        response.setContentType("image/jpeg");
+//        String code = vCode.getCode();
+        String code = CaptchaUtils.createText();
+        CaptchaUtils.generateCaptcha(response, code);
+
         if (type == null || type == 0) {
             session.setAttribute(Constants.CHECK_CODE_KEY, code);
         } else {
             session.setAttribute(Constants.CHECK_CODE_KEY_EMAIL, code);
         }
-        vCode.write(response.getOutputStream());
+
     }
 
     /**
@@ -168,11 +172,11 @@ public class AccountController extends ABaseController {
         String avatarPath = appConfig.getProjectFolder() + avatarFolderName + userId + Constants.AVATAR_SUFFIX;
         File file = new File(avatarPath);
         if (!file.exists()) {
-            if (!new File(appConfig.getProjectFolder() + avatarFolderName + Constants.AVATAR_DEFUALT).exists()) {
+            if (!new File(appConfig.getProjectFolder() + avatarFolderName + Constants.AVATAR_DEFAULT).exists()) {
                 printNoDefaultImage(response);
                 return;
             }
-            avatarPath = appConfig.getProjectFolder() + avatarFolderName + Constants.AVATAR_DEFUALT;
+            avatarPath = appConfig.getProjectFolder() + avatarFolderName + Constants.AVATAR_DEFAULT;
         }
         response.setContentType("image/jpg");
         readFile(response, avatarPath);

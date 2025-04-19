@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .email-header {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+        .email-body {
+            font-size: 16px;
+            color: #333;
+        }
+        .code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            font-size: 12px;
+            color: #aaa;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="email-header">
+        <h2>欢迎注册我们的平台</h2>
+    </div>
+    <div class="email-body">
+        <p>您好，</p>
+        <p>感谢您注册我们的平台！为了验证您的邮箱，请使用以下验证码完成验证：</p>
+        <p class="code">${code}</p>
+        <p>验证码有效期为${code}分钟。</p>
+    </div>
+    <div class="footer">
+        <p>如果您没有请求此邮件，请忽略。</p>
+    </div>
+</div>
+</body>
+</html>

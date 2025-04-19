@@ -43,7 +43,7 @@ public class Constants {
 
     public static final String FILE_FOLDER_AVATAR_NAME = "avatar/";
 
-    public static final String AVATAR_DEFUALT = "default_avatar.jpg";
+    public static final String AVATAR_DEFAULT = "default_avatar.jpg";
 
     public static final String VIEW_OBJ_RESULT_KEY = "result";
 

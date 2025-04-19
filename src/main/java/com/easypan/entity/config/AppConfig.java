@@ -1,14 +1,17 @@
 package com.easypan.entity.config;
 
 import com.easypan.utils.StringTools;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+
 @Component("appConfig")
 public class AppConfig {
 
+    @Getter
     private static final Logger logger = LoggerFactory.getLogger(AppConfig.class);
 
     /**
@@ -20,42 +23,48 @@ public class AppConfig {
     /**
      * 发送人
      */
+    @Getter
     @Value("${spring.mail.username:}")
     private String sendUserName;
 
 
+    @Getter
     @Value("${admin.emails:}")
     private String adminEmails;
 
-    public String getAdminEmails() {
-        return adminEmails;
-    }
-
+    @Getter
     @Value("${dev:false}")
     private Boolean dev;
 
 
+    @Getter
     @Value("${qq.app.id:}")
     private String qqAppId;
 
+    @Getter
     @Value("${qq.app.key:}")
     private String qqAppKey;
 
 
+    @Getter
     @Value("${qq.url.authorization:}")
     private String qqUrlAuthorization;
 
 
+    @Getter
     @Value("${qq.url.access.token:}")
     private String qqUrlAccessToken;
 
 
+    @Getter
     @Value("${qq.url.openid:}")
     private String qqUrlOpenId;
 
+    @Getter
     @Value("${qq.url.user.info:}")
     private String qqUrlUserInfo;
 
+    @Getter
     @Value("${qq.url.redirect:}")
     private String qqUrlRedirect;
 
@@ -67,43 +76,4 @@ public class AppConfig {
         return projectFolder;
     }
 
-    public static Logger getLogger() {
-        return logger;
-    }
-
-    public String getSendUserName() {
-        return sendUserName;
-    }
-
-    public Boolean getDev() {
-        return dev;
-    }
-
-    public String getQqAppId() {
-        return qqAppId;
-    }
-
-    public String getQqAppKey() {
-        return qqAppKey;
-    }
-
-    public String getQqUrlAuthorization() {
-        return qqUrlAuthorization;
-    }
-
-    public String getQqUrlAccessToken() {
-        return qqUrlAccessToken;
-    }
-
-    public String getQqUrlOpenId() {
-        return qqUrlOpenId;
-    }
-
-    public String getQqUrlUserInfo() {
-        return qqUrlUserInfo;
-    }
-
-    public String getQqUrlRedirect() {
-        return qqUrlRedirect;
-    }
 }

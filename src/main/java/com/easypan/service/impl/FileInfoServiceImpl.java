@@ -18,8 +18,7 @@ import com.easypan.mappers.FileInfoMapper;
 import com.easypan.mappers.UserInfoMapper;
 import com.easypan.service.FileInfoService;
 import com.easypan.utils.DateUtil;
-import com.easypan.utils.ProcessUtils;
-import com.easypan.utils.ScaleFilter;
+import com.easypan.utils.FFmpegUtils;
 import com.easypan.utils.StringTools;
 import jakarta.annotation.Resource;
 import org.apache.commons.io.FileUtils;
@@ -94,8 +93,7 @@ public class FileInfoServiceImpl implements FileInfoService {
         SimplePage page = new SimplePage(param.getPageNo(), count, pageSize);
         param.setSimplePage(page);
         List<FileInfo> list = this.findListByParam(param);
-        PaginationResultVO<FileInfo> result = new PaginationResultVO(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
-        return result;
+        return new PaginationResultVO<>(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
     }
 
     /**
@@ -153,12 +151,15 @@ public class FileInfoServiceImpl implements FileInfoService {
     }
 
 
+    /**
+     * 上传文件
+     */
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class) //事务注解 在方法执行过程中发生异常，会回滚事务，执行事务内的操作回滚
     public UploadResultDto uploadFile(SessionWebUserDto webUserDto, String fileId, MultipartFile file, String fileName, String filePid, String fileMd5,
                                       Integer chunkIndex, Integer chunks) {
         File tempFileFolder = null;
-        Boolean uploadSuccess = true;
+        boolean uploadSuccess = true;
         try {
             UploadResultDto resultDto = new UploadResultDto();
             if (StringTools.isEmpty(fileId)) {
@@ -205,7 +206,9 @@ public class FileInfoServiceImpl implements FileInfoService {
             //创建临时目录
             tempFileFolder = new File(tempFolderName + currentUserFolderName);
             if (!tempFileFolder.exists()) {
-                tempFileFolder.mkdirs();
+                if (!tempFileFolder.mkdirs()){
+                    throw new IllegalStateException("创建临时目录失败");
+                }
             }
 
             //判断磁盘空间
@@ -305,7 +308,7 @@ public class FileInfoServiceImpl implements FileInfoService {
 
     @Async
     public void transferFile(String fileId, SessionWebUserDto webUserDto) {
-        Boolean transferSuccess = true;
+        boolean transferSuccess = true;
         String targetFilePath = null;
         String cover = null;
         FileTypeEnums fileTypeEnum = null;
@@ -319,7 +322,9 @@ public class FileInfoServiceImpl implements FileInfoService {
             String currentUserFolderName = webUserDto.getUserId() + fileId;
             File fileFolder = new File(tempFolderName + currentUserFolderName);
             if (!fileFolder.exists()) {
-                fileFolder.mkdirs();
+                if (!fileFolder.mkdirs()){
+                    throw new IllegalStateException("创建临时目录失败");
+                }
             }
             //文件后缀
             String fileSuffix = StringTools.getFileSuffix(fileInfo.getFileName());
@@ -328,7 +333,9 @@ public class FileInfoServiceImpl implements FileInfoService {
             String targetFolderName = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE;
             File targetFolder = new File(targetFolderName + "/" + month);
             if (!targetFolder.exists()) {
-                targetFolder.mkdirs();
+                if (!targetFolder.mkdirs()){
+                    throw new IllegalStateException("创建目标目录失败");
+                }
             }
             //真实文件名
             String realFileName = currentUserFolderName + fileSuffix;
@@ -339,16 +346,16 @@ public class FileInfoServiceImpl implements FileInfoService {
             //视频文件切割
             fileTypeEnum = FileTypeEnums.getFileTypeBySuffix(fileSuffix);
             if (FileTypeEnums.VIDEO == fileTypeEnum) {
-                cutFile4Video(fileId, targetFilePath);
-                //视频生成缩略图
+                FFmpegUtils.cutFile4Video(fileId, targetFilePath);
+                //视频生成封面
                 cover = month + "/" + currentUserFolderName + Constants.IMAGE_PNG_SUFFIX;
                 String coverPath = targetFolderName + "/" + cover;
-                ScaleFilter.createCover4Video(new File(targetFilePath), Constants.LENGTH_150, new File(coverPath));
+                FFmpegUtils.createCoverFromVideo(new File(targetFilePath), Constants.LENGTH_150, new File(coverPath));
             } else if (FileTypeEnums.IMAGE == fileTypeEnum) {
                 //生成缩略图
                 cover = month + "/" + realFileName.replace(".", "_.");
                 String coverPath = targetFolderName + "/" + cover;
-                Boolean created = ScaleFilter.createThumbnailWidthFFmpeg(new File(targetFilePath), Constants.LENGTH_150, new File(coverPath), false);
+                Boolean created = FFmpegUtils.createThumbnail(new File(targetFilePath), Constants.LENGTH_150, new File(coverPath), false);
                 if (!created) {
                     FileUtils.copyFile(new File(targetFilePath), new File(coverPath));
                 }
@@ -358,7 +365,9 @@ public class FileInfoServiceImpl implements FileInfoService {
             transferSuccess = false;
         } finally {
             FileInfo updateInfo = new FileInfo();
-            updateInfo.setFileSize(new File(targetFilePath).length());
+            if (targetFilePath != null) {
+                updateInfo.setFileSize(new File(targetFilePath).length());
+            }
             updateInfo.setFileCover(cover);
             updateInfo.setStatus(transferSuccess ? FileStatusEnums.USING.getStatus() : FileStatusEnums.TRANSFER_FAIL.getStatus());
             fileInfoMapper.updateFileStatusWithOldStatus(fileId, webUserDto.getUserId(), updateInfo, FileStatusEnums.TRANSFER.getStatus());
@@ -407,33 +416,43 @@ public class FileInfoServiceImpl implements FileInfoService {
                     try {
                         FileUtils.deleteDirectory(dir);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error("删除目录失败", e);
                     }
                 }
             }
         }
     }
-
-    private void cutFile4Video(String fileId, String videoFilePath) {
-        //创建同名切片目录
-        File tsFolder = new File(videoFilePath.substring(0, videoFilePath.lastIndexOf(".")));
-        if (!tsFolder.exists()) {
-            tsFolder.mkdirs();
-        }
-        final String CMD_TRANSFER_2TS = "ffmpeg -y -i %s  -vcodec copy -acodec copy -vbsf h264_mp4toannexb %s";
-        final String CMD_CUT_TS = "ffmpeg -i %s -c copy -map 0 -f segment -segment_list %s -segment_time 30 %s/%s_%%4d.ts";
-
-        String tsPath = tsFolder + "/" + Constants.TS_NAME;
-        //生成.ts
-        String cmd = String.format(CMD_TRANSFER_2TS, videoFilePath, tsPath);
-        ProcessUtils.executeCommand(cmd, false);
-        //生成索引文件.m3u8 和切片.ts
-        cmd = String.format(CMD_CUT_TS, tsPath, tsFolder.getPath() + "/" + Constants.M3U8_NAME, tsFolder.getPath(), fileId);
-        ProcessUtils.executeCommand(cmd, false);
-        //删除index.ts
-        new File(tsPath).delete();
-    }
-
+//    /***
+//    * @Description: 将视频文件切割成多个TS
+//    * @Param: [fileId, videoFilePath]
+//    * @return: void
+//    * @Author: kun
+//    * @Date: 2025/4/18
+//    */
+//    private void cutFile4Video(String fileId, String videoFilePath) {
+//        //创建同名切片目录
+//        File tsFolder = new File(videoFilePath.substring(0, videoFilePath.lastIndexOf(".")));
+//        if (!tsFolder.exists()) {
+//            tsFolder.mkdirs();
+//        }
+//        //在新版本中已被废弃
+////        final String CMD_TRANSFER_2TS = "ffmpeg -y -i %s  -vcodec copy -acodec copy -vbsf h264_mp4toannexb %s";
+//        String CMD_TRANSFER_2TS = "ffmpeg -y -i %s -vcodec copy -acodec copy -bsf:v h264_mp4toannexb %s";
+//        final String CMD_CUT_TS = "ffmpeg -i %s -c copy -map 0 -f segment -segment_list %s -segment_time 30 %s/%s_%%4d.ts";
+//
+//        String tsPath = tsFolder + "/" + Constants.TS_NAME;
+//        //生成.ts
+//        String cmd = String.format(CMD_TRANSFER_2TS, videoFilePath, tsPath);
+//        ProcessUtils.executeCommand(cmd, false);
+//        //生成索引文件.m3u8 和切片.ts
+//        cmd = String.format(CMD_CUT_TS, tsPath, tsFolder.getPath() + "/" + Constants.M3U8_NAME, tsFolder.getPath(), fileId);
+//        ProcessUtils.executeCommand(cmd, false);
+//        //删除index.ts
+//        new File(tsPath).delete();
+//    }
+    /**
+     * 重命名文件
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public FileInfo rename(String fileId, String userId, String fileName) {
@@ -470,6 +489,9 @@ public class FileInfoServiceImpl implements FileInfoService {
         return fileInfo;
     }
 
+    /**
+     * 检查文件名是否重复
+     */
     private void checkFileName(String filePid, String userId, String fileName, Integer folderType) {
         FileInfoQuery fileInfoQuery = new FileInfoQuery();
         fileInfoQuery.setFolderType(folderType);
@@ -483,6 +505,9 @@ public class FileInfoServiceImpl implements FileInfoService {
         }
     }
 
+    /**
+     * 新建文件夹
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public FileInfo newFolder(String filePid, String userId, String folderName) {
@@ -608,7 +633,6 @@ public class FileInfoServiceImpl implements FileInfoService {
         query.setFileIdArray(fileIdArray);
         query.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
         List<FileInfo> fileInfoList = this.fileInfoMapper.selectList(query);
-
         List<String> delFileSubFolderFileIdList = new ArrayList<>();
         //找到所选文件子目录文件ID
         for (FileInfo fileInfo : fileInfoList) {
