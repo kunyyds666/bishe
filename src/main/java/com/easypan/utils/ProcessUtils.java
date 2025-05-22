@@ -12,10 +12,10 @@ import java.io.InputStreamReader;
 public class ProcessUtils {
     private static final Logger logger = LoggerFactory.getLogger(ProcessUtils.class);
 
-    public static String executeCommand(String cmd, Boolean outprintLog) throws BusinessException {
+    public static void executeCommand(String cmd, Boolean outprintLog) throws BusinessException {
         if (StringTools.isEmpty(cmd)) {
             logger.error("--- 指令执行失败，因为要执行的FFmpeg指令为空！ ---");
-            return null;
+            return;
         }
 
         Runtime runtime = Runtime.getRuntime();
@@ -40,7 +40,6 @@ public class ProcessUtils {
             } else {
                 logger.info("执行命令:{}，已执行完毕", cmd);
             }
-            return result;
         } catch (Exception e) {
             // logger.error("执行命令失败:{} ", e.getMessage());
             e.printStackTrace();

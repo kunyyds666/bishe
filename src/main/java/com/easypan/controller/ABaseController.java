@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 
 
@@ -23,13 +22,13 @@ public class ABaseController {
 
     private static final Logger logger = LoggerFactory.getLogger(ABaseController.class);
 
-    protected static final String STATUC_SUCCESS = "success";
+    protected static final String STATUS_SUCCESS = "success";
 
-    protected static final String STATUC_ERROR = "error";
+    protected static final String STATUS_ERROR = "error";
 
     protected <T> ResponseVO getSuccessResponseVO(T t) {
         ResponseVO<T> responseVO = new ResponseVO<>();
-        responseVO.setStatus(STATUC_SUCCESS);
+        responseVO.setStatus(STATUS_SUCCESS);
         responseVO.setCode(ResponseCodeEnum.CODE_200.getCode());
         responseVO.setInfo(ResponseCodeEnum.CODE_200.getMsg());
         responseVO.setData(t);
@@ -47,53 +46,42 @@ public class ABaseController {
     }
 
     protected SessionWebUserDto getUserInfoFromSession(HttpSession session) {
-        SessionWebUserDto sessionWebUserDto = (SessionWebUserDto) session.getAttribute(Constants.SESSION_KEY);
-        return sessionWebUserDto;
+        return (SessionWebUserDto) session.getAttribute(Constants.SESSION_KEY);
     }
 
 
     protected SessionShareDto getSessionShareFromSession(HttpSession session, String shareId) {
-        SessionShareDto sessionShareDto = (SessionShareDto) session.getAttribute(Constants.SESSION_SHARE_KEY + shareId);
-        return sessionShareDto;
+        return (SessionShareDto) session.getAttribute(Constants.SESSION_SHARE_KEY + shareId);
     }
 
 
-    protected void readFile(HttpServletResponse response, String filePath) {
+    protected void readFile(HttpServletResponse response, String filePath, String contentType) {
         if (!StringTools.pathIsOk(filePath)) {
             return;
         }
-        OutputStream out = null;
-        FileInputStream in = null;
-        try {
+
+        try (FileInputStream in = new FileInputStream(filePath);
+             OutputStream out = response.getOutputStream()) {
+
             File file = new File(filePath);
             if (!file.exists()) {
                 return;
             }
-            in = new FileInputStream(file);
-            byte[] byteData = new byte[1024];
-            out = response.getOutputStream();
-            int len = 0;
-            while ((len = in.read(byteData)) != -1) {
-                out.write(byteData, 0, len);
+
+            // 设置响应头
+            response.setContentType(contentType != null ? contentType : "application/octet-stream");
+            response.setContentLengthLong(file.length());
+            response.setHeader("Accept-Ranges", "bytes");
+
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = in.read(buffer)) != -1) {
+                out.write(buffer, 0, len);
             }
             out.flush();
         } catch (Exception e) {
             logger.error("读取文件异常", e);
-        } finally {
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    logger.error("IO异常", e);
-                }
-            }
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    logger.error("IO异常", e);
-                }
-            }
         }
     }
+
 }

@@ -15,11 +15,10 @@ import com.easypan.exception.BusinessException;
 import com.easypan.service.FileInfoService;
 import com.easypan.utils.CopyTools;
 import com.easypan.utils.StringTools;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
-
-import jakarta.annotation.Resource;
 
 import java.io.File;
 import java.net.URLEncoder;
@@ -59,11 +58,12 @@ public class CommonFileController extends ABaseController {
         String contentType = "image/" + imageSuffix;
         response.setContentType(contentType);
         response.setHeader("Cache-Control", "max-age=2592000");
-        readFile(response, filePath);
+        readFile(response, filePath, null);
     }
 
     protected void getFile(HttpServletResponse response, String fileId, String userId) {
         String filePath = null;
+        String contentType = null;
         if (fileId.endsWith(".ts")) {
             String[] tsAarray = fileId.split("_");
             String realFileId = tsAarray[0];
@@ -104,12 +104,16 @@ public class CommonFileController extends ABaseController {
             } else {
                 filePath = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE + fileInfo.getFilePath();
             }
+            if (FileCategoryEnums.MUSIC.getCategory().equals(fileInfo.getFileCategory())) {
+                // 音频类型，设置 MIME 类型
+                contentType = getAudioContentType(fileInfo.getFilePath());
+            }
         }
         File file = new File(filePath);
         if (!file.exists()) {
             return;
         }
-        readFile(response, filePath);
+        readFile(response, filePath, contentType);
     }
 
     protected ResponseVO createDownloadUrl(String fileId, String userId) {
@@ -145,6 +149,16 @@ public class CommonFileController extends ABaseController {
             fileName = new String(fileName.getBytes("UTF-8"), "ISO8859-1");
         }
         response.setHeader("Content-Disposition", "attachment;filename=\"" + fileName + "\"");
-        readFile(response, filePath);
+        readFile(response, filePath, null);
+    }
+
+    private String getAudioContentType(String path) {
+        if (path.endsWith(".mp3")) return "audio/mpeg";
+        if (path.endsWith(".wav")) return "audio/wav";
+        if (path.endsWith(".flac")) return "audio/flac";
+        if (path.endsWith(".aac")) return "audio/aac";
+        if (path.endsWith(".wma")) return "audio/x-ms-wma";
+        // 兜底
+        return "audio/mpeg";
     }
 }

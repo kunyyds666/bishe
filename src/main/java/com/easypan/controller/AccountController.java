@@ -178,7 +178,7 @@ public class AccountController extends ABaseController {
             avatarPath = appConfig.getProjectFolder() + avatarFolderName + Constants.AVATAR_DEFAULT;
         }
         response.setContentType("image/jpg");
-        readFile(response, avatarPath);
+        readFile(response, avatarPath, null);
     }
 
     private void printNoDefaultImage(HttpServletResponse response) {

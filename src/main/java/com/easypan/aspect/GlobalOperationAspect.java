@@ -30,6 +30,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
+import java.util.Objects;
 
 @Component("operationAspect")
 @Aspect
@@ -90,9 +91,10 @@ public class GlobalOperationAspect {
 
     //校验登录
     private void checkLogin(Boolean checkAdmin) {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
         HttpSession session = request.getSession();
         SessionWebUserDto sessionUser = (SessionWebUserDto) session.getAttribute(Constants.SESSION_KEY);
+        //开发环境不需要登录
         if (sessionUser == null && appConfig.getDev() != null && appConfig.getDev()) {
             List<UserInfo> userInfoList = userInfoService.findListByParam(new UserInfoQuery());
             if (!userInfoList.isEmpty()) {
@@ -114,6 +116,9 @@ public class GlobalOperationAspect {
     }
 
 
+    /**
+     * 校验基本数据类型参数
+     */
     private void validateParams(Method m, Object[] arguments) throws BusinessException {
         Parameter[] parameters = m.getParameters();
         for (int i = 0; i < parameters.length; i++) {
@@ -133,11 +138,14 @@ public class GlobalOperationAspect {
         }
     }
 
+    /**
+     * 校验对象参数
+     */
     private void checkObjValue(Parameter parameter, Object value) {
         try {
             String typeName = parameter.getParameterizedType().getTypeName();
-            Class classz = Class.forName(typeName);
-            Field[] fields = classz.getDeclaredFields();
+            Class<?> clazz = Class.forName(typeName);
+            Field[] fields = clazz.getDeclaredFields();
             for (Field field : fields) {
                 VerifyParam fieldVerifyParam = field.getAnnotation(VerifyParam.class);
                 if (fieldVerifyParam == null) {
@@ -158,10 +166,6 @@ public class GlobalOperationAspect {
 
     /**
      * 校验参数
-     *
-     * @param value
-     * @param verifyParam
-     * @throws BusinessException
      */
     private void checkValue(Object value, VerifyParam verifyParam) throws BusinessException {
         Boolean isEmpty = value == null || StringTools.isEmpty(value.toString());
